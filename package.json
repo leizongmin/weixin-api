@@ -1,0 +1,39 @@
+{
+  "name": "wxapi",
+  "version": "0.0.0",
+  "description": "个人版微信API Wechat API",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leizongmin/weixin-api.git"
+  },
+  "keywords": [
+    "wechat",
+    "api",
+    "weixin",
+    "wx",
+    "bot",
+    "微信",
+    "微信机器人",
+    "机器人"
+  ],
+  "author": "Zongmin Lei <leizongmin@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/leizongmin/weixin-api/issues"
+  },
+  "homepage": "https://github.com/leizongmin/weixin-api#readme",
+  "devDependencies": {
+    "babel-cli": "^6.6.5",
+    "babel-preset-es2015-node4": "^2.0.3",
+    "babel-preset-stage-0": "^6.5.0"
+  },
+  "dependencies": {
+    "debug": "^2.2.0",
+    "qrcode-terminal": "^0.10.0",
+    "request": "^2.69.0"
+  }
+}
