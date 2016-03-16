@@ -5,6 +5,6 @@ const WeixinAPI = require('../');
 const wx = new WeixinAPI();
 
 
-wx.getLoginQRCode()
+wx.login()
 .then(console.log)
 .catch(console.log)

@@ -44,24 +44,77 @@ export default class WeixinAPI {
     }
 
     this._debug('getUuid: uuid=%s', uuid);
+    this.uuid = uuid;
     return uuid;
 
   }
 
   async getLoginQRCode() {
 
-    this._debug('getLoginQRCode: get uuid');
-    const uuid = await this.getUuid();
-    if (!uuid) {
-      this._debug('getLoginQRCode: get uuid failed');
-      return false;
-    }
-
-    const url = config.api.qrcode + uuid;
+    const url = config.api.qrcode + this.uuid;
     this._debug('getLoginQRCode: generate QRCode, text=%s', url);
     const qrcode = await utils.generateQRCode(url);
 
     return qrcode;
+
+  }
+
+  async queryQRCodeScanningStatus() {
+
+    this._debug('queryQRCodeScanningStatus: query');
+    const {response, body} = await utils.sendRequest({
+      method: 'GET',
+      url: 'https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login?uuid=' + this.uuid,
+      /*qs: {
+        uuid: this.uuid,
+        //tip: 1,
+        //r: utils.getTimestamp(),
+      },*/
+    });
+
+    const lines = body.split(/\n/);
+    const s1 = lines[0].match(/window.code=(\d+)/);
+    if (s1) {
+      const code = Number(s1[1]);
+      this._debug('queryQRCodeScanningStatus: code=%s', code);
+      if (code === 200) {
+        const s2 = lines[1].match(/window.redirect_uri="(.+)"/);
+        if (s2) {
+          const url = s2[1];
+          return {code, url};
+        } else {
+          return {code, url: false};
+        }
+      } else {
+        return {code};
+      }
+    } else {
+      return {code: false};
+    }
+
+  }
+
+  async login() {
+
+    this._debug('login: getLoginQRCode');
+    await this.getUuid();
+    const qrcode = await this.getLoginQRCode();
+    console.log(qrcode);
+
+    while (true) {
+      await utils.sleep(1000);
+      const {code, url} = await this.queryQRCodeScanningStatus();
+      this._debug('login: status, code=%s, url=%s', code, url);
+      if (code === 200) {
+        break;
+      } else if (code === 201) {
+        this._debug('login: waiting user confirm login');
+      } else if (code === 408) {
+        this._debug('login: timeout');
+      } else {
+        throw new Error(`login failed waith status code ${code}`);
+      }
+    }
 
   }
 
