@@ -59,24 +59,19 @@ export default class WeixinAPI {
 
   }
 
-  async queryQRCodeScanningStatus() {
+  async checkLoginStatus() {
 
-    this._debug('queryQRCodeScanningStatus: query');
+    this._debug('checkLoginStatus: query');
     const {response, body} = await utils.sendRequest({
       method: 'GET',
-      url: 'https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login?uuid=' + this.uuid,
-      /*qs: {
-        uuid: this.uuid,
-        //tip: 1,
-        //r: utils.getTimestamp(),
-      },*/
+      url: config.api.loginStatus + '?uuid=' + this.uuid + '&_=' + utils.getTimestamp(),
     });
 
     const lines = body.split(/\n/);
     const s1 = lines[0].match(/window.code=(\d+)/);
     if (s1) {
       const code = Number(s1[1]);
-      this._debug('queryQRCodeScanningStatus: code=%s', code);
+      this._debug('checkLoginStatus: code=%s', code);
       if (code === 200) {
         const s2 = lines[1].match(/window.redirect_uri="(.+)"/);
         if (s2) {
@@ -102,8 +97,8 @@ export default class WeixinAPI {
     console.log(qrcode);
 
     while (true) {
-      await utils.sleep(1000);
-      const {code, url} = await this.queryQRCodeScanningStatus();
+      await utils.sleep(100);
+      const {code, url} = await this.checkLoginStatus();
       this._debug('login: status, code=%s, url=%s', code, url);
       if (code === 200) {
         break;

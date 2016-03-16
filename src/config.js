@@ -21,3 +21,5 @@ config.api = {};
 config.api.jsLogin = 'https://login.weixin.qq.com/jslogin';
 // 生成二维码
 config.api.qrcode = 'https://login.weixin.qq.com/l/';
+// 检查登录状态
+config.api.loginStatus = 'https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login';

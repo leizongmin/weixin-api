@@ -11,6 +11,8 @@ import QRCodeTerminal from 'qrcode-terminal';
 import _createDebug from 'debug';
 const debug = _createDebug('wxapi:utils');
 
+request.debug = _createDebug('wxapi:request');
+
 export function createDebug(name) {
   return _createDebug('wxapi:' + name);
 }
