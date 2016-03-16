@@ -27,6 +27,15 @@ config.api.loginStatus = 'https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login'
 // 微信初始化
 config.api.init = 'https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxinit';
 // 检查新消息
-config.api.syncCheck = 'https://webpush2.weixin.qq.com/cgi-bin/mmwebwx-bin/synccheck';
+config.api.syncCheck = 'https://${host}/cgi-bin/mmwebwx-bin/synccheck';
+config.api.syncCheckHost = [
+  'webpush.weixin.qq.com',
+  'webpush2.weixin.qq.com',
+  'webpush.wechat.com',
+  'webpush1.wechat.com',
+  'webpush2.wechat.com',
+  'webpush.wechatapp.com',
+  'webpush1.wechatapp.com',
+];
 // 同步消息
 config.api.sync = 'https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxsync';

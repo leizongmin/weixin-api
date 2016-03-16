@@ -208,12 +208,45 @@ export default class WeixinAPI extends EventEmitter {
 
   }
 
+  async lookupSyncHost() {
+
+    this.session.syncCheckUrl = null;
+
+    for (const host of config.api.syncCheckHost) {
+      try {
+        const url = config.api.syncCheck.replace(/\$\{host\}/g, host);
+        this._debug('lookupSyncHost: test %s', url);
+
+        const {response, body} = await this.request({
+          method: 'GET',
+          url: url + `?sid=${this.session.wxsid}&skey=${this.session.skey}&uin=${this.session.wxuin}&deviceid=${this.session.deviceId}&synckey=${this.getSyncKeyString()}&r=${utils.getTimestamp()}&_=${utils.getTimestamp()}`,
+        });
+        this._debug('lookupSyncHost: response %s', body);
+
+        const s = body.match(/window.synccheck={retcode:"(.*)",selector:"(.*)"}/);
+        if (s) {
+          const [_, retcode, selector] = s;
+          if (retcode == 0) {
+            this._debug('lookupSyncHost: ok %s', url);
+            this.session.syncCheckUrl = url;
+            break;
+          }
+        }
+      } catch (err) {
+        this._debug('lookupSyncHost: test, err=%s', err);
+      }
+    }
+
+    return !!this.session.syncCheckUrl;
+
+  }
+
   async wxSyncCheck() {
 
     this._debug('wxSyncCheck');
     const {response, body} = await this.request({
       method: 'GET',
-      url: config.api.syncCheck + `?sid=${this.session.wxsid}&skey=${this.session.skey}&uin=${this.session.wxuin}&deviceid=${this.session.deviceId}&synckey=${this.getSyncKeyString()}&r=${utils.getTimestamp()}&_=${utils.getTimestamp()}`,
+      url: this.session.syncCheckUrl + `?sid=${this.session.wxsid}&skey=${this.session.skey}&uin=${this.session.wxuin}&deviceid=${this.session.deviceId}&synckey=${this.getSyncKeyString()}&r=${utils.getTimestamp()}&_=${utils.getTimestamp()}`,
     });
 
     const s = body.match(/window.synccheck={retcode:"(.*)",selector:"(.*)"}/);
@@ -297,11 +330,9 @@ export default class WeixinAPI extends EventEmitter {
       }
     }
 
-    await utils.sleep(200);
     this._debug('login: wxNewLoginPage');
     await this.wxNewLoginPage(status.url + '&fun=' + config.fun);
 
-    await utils.sleep(200);
     this._debug('login: wxInit');
     await this.wxInit();
 
@@ -317,10 +348,11 @@ export default class WeixinAPI extends EventEmitter {
       this.continueLoop = false;
     });
 
-    this.continueLoop = true;
+    this.continueLoop = await this.lookupSyncHost();
+
     while (this.continueLoop) {
 
-      await utils.sleep(500);
+      await this.wxSync();
       await this.wxSyncCheck();
 
     }
