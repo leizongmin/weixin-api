@@ -26,12 +26,16 @@ let sendRequestCounter = 0;
 export function sendRequest(options) {
   const i = sendRequestCounter++;
   debug('sendRequest[#%s]: request, %s %s qs=%j, form=%j', i, options.method, options.url, options.qs, options.form);
+
   options.headers = options.headers || {};
   options.headers['user-agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2652.0 Safari/537.36';
   options.headers['accept'] = 'application/json, text/plain, */*';
+  options.headers['accept-language'] = 'zh-CN,zh;q=0.8,en;q=0.6,zh-TW;q=0.4';
   options.headers['referer'] = 'https://wx.qq.com/';
+
   debug('sendRequest[#%s]: request, headers=%j', i, options.headers);
   return new Promise((resolve, reject) => {
+
     request(options, (err, response, body) => {
       if (err) {
         debug('sendRequest[#%s]: response, err=%s', i, err);
@@ -41,6 +45,7 @@ export function sendRequest(options) {
         resolve({response, body});
       }
     });
+
   });
 }
 
