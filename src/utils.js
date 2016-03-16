@@ -54,6 +54,7 @@ export function generateQRCode(text) {
 }
 
 export function sleep(ms) {
+  debug('sleep: %sms', ms);
   return new Promise((resolve, reject) => {
     setTimeout(resolve, ms);
   });

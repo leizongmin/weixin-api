@@ -26,11 +26,13 @@ config.api.qrcodeImage = 'https://login.weixin.qq.com/qrcode/';
 config.api.loginStatus = 'https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login';
 // 微信初始化
 config.api.init = 'https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxinit';
+// 通知状态
+config.api.statusNotify = 'https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxstatusnotify';
 // 检查新消息
 config.api.syncCheck = 'https://${host}/cgi-bin/mmwebwx-bin/synccheck';
 config.api.syncCheckHost = [
-  'webpush.weixin.qq.com',
   'webpush2.weixin.qq.com',
+  'webpush.weixin.qq.com',
   'webpush.wechat.com',
   'webpush1.wechat.com',
   'webpush2.wechat.com',
