@@ -21,5 +21,8 @@ config.api = {};
 config.api.jsLogin = 'https://login.weixin.qq.com/jslogin';
 // 生成二维码
 config.api.qrcode = 'https://login.weixin.qq.com/l/';
+config.api.qrcodeImage = 'https://login.weixin.qq.com/qrcode/';
 // 检查登录状态
 config.api.loginStatus = 'https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login';
+// 微信初始化
+config.api.init = 'https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxinit';
