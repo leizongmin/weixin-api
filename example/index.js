@@ -5,10 +5,13 @@ const WeixinAPI = require('../');
 
 const wx = new WeixinAPI();
 
+wx.on('login', (qrcode, image) => {
+  console.log(qrcode);
+  console.log(image);
+});
 
 wx.login()
 .then(() => {
-  console.log('done');
   global.wx = wx;
   repl.start('> ').on('exit', () => {
     process.exit();

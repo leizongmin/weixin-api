@@ -6,14 +6,16 @@
  * @author Zongmin Lei <leizongmin@gmail.com>
  */
 
+import {EventEmitter} from 'events';
 import config from './config';
 import * as utils from './utils';
 
 let instanceCounter = 0;
 
-export default class WeixinAPI {
+export default class WeixinAPI extends EventEmitter {
 
   constructor(options) {
+    super();
 
     this.options = options = options || {};
     this.session = {
@@ -186,18 +188,14 @@ export default class WeixinAPI {
 
   }
 
-  async login(receiveQRCode) {
-
-    receiveQRCode = receiveQRCode || function (qrcode, image) {
-      console.log(qrcode);
-    };
+  async login() {
 
     const status = {};
 
     this._debug('login: getLoginQRCode');
     await this.getUuid();
     const {qrcode, image} = await this.getLoginQRCode();
-    receiveQRCode(qrcode, image);
+    this.emit('login', qrcode, image);
 
     while (true) {
       await utils.sleep(100);
@@ -218,7 +216,6 @@ export default class WeixinAPI {
     this._debug('login: wxNewLoginPage');
     await this.wxNewLoginPage(status.url + '&fun=' + config.fun);
 
-    console.log('\n\n\n\n');
     this._debug('login: wxInit');
     await this.wxInit();
 
