@@ -3,8 +3,8 @@
 
 本项目受以下开源项目启发：
 
-+ [WeixinBot(Python版本)](https://github.com/Urinx/WeixinBot)
-+ [Weixinbot(Node.js版本)](https://github.com/feit/Weixinbot/)
++ [WeixinBot (Python版本)](https://github.com/Urinx/WeixinBot)
++ [Weixinbot (Node.js版本)](https://github.com/feit/Weixinbot/)
 
 
 
