@@ -26,3 +26,7 @@ config.api.qrcodeImage = 'https://login.weixin.qq.com/qrcode/';
 config.api.loginStatus = 'https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login';
 // 微信初始化
 config.api.init = 'https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxinit';
+// 检查新消息
+config.api.syncCheck = 'https://webpush2.weixin.qq.com/cgi-bin/mmwebwx-bin/synccheck';
+// 同步消息
+config.api.sync = 'https://wx2.qq.com/cgi-bin/mmwebwx-bin/webwxsync';

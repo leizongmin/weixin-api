@@ -19,12 +19,16 @@ export default class WeixinAPI extends EventEmitter {
 
     this.options = options = options || {};
     this.session = {
-      device_id: utils.generateDeviceID(),
+      deviceId: utils.generateDeviceID(),
       cookies: {},
     };
     this.status = {};
+    this.syncKey = null;
+    this.syncKeyString = null;
 
-    this._debug = utils.createDebug('wxapi:#' + (instanceCounter++));
+    this.continueLoop = false;
+
+    this._debug = utils.createDebug('#' + (instanceCounter++));
     this._debug('created');
 
   }
@@ -65,8 +69,21 @@ export default class WeixinAPI extends EventEmitter {
       Uin: this.session.wxuin,
       Sid: this.session.wxsid,
       Skey: this.session.skey,
-      DeviceID: this.session.device_id,
+      DeviceID: this.session.deviceId,
     };
+  }
+
+  setSyncKey(key) {
+    this.syncKey = key;
+    this.syncKeyString = key.List.map((item) => item.Key + '_' + item.Val).join('|');
+  }
+
+  getSyncKey() {
+    return this.syncKey;
+  }
+
+  getSyncKeyString() {
+    return this.syncKeyString;
   }
 
   async getUuid() {
@@ -155,7 +172,7 @@ export default class WeixinAPI extends EventEmitter {
       this.session.pass_ticket = data.error.pass_ticket;
 
     } else {
-      throw new Error('call wxNewLoginPage failed');
+      this.emit('error', new Error('call wxNewLoginPage failed'));
     }
 
   }
@@ -176,13 +193,80 @@ export default class WeixinAPI extends EventEmitter {
     });
 
     if (body.BaseResponse.Ret != 0) {
-      throw new Error(`wxInit failed with code #${body.BaseResponse.Ret} ${body.BaseResponse.ErrMsg}`);
+      this.emit('error', new Error(`wxInit failed with code #${body.BaseResponse.Ret} ${body.BaseResponse.ErrMsg}`));
     }
 
     this._debug('wxInit: success');
     for (const i in body) {
       if (i !== 'BaseResponse' && i !== 'Count') {
         this.status[i] = body[i];
+      }
+    }
+    if (body.SyncKey) {
+      this.setSyncKey(body.SyncKey);
+    }
+
+  }
+
+  async wxSyncCheck() {
+
+    this._debug('wxSyncCheck');
+    const {response, body} = await this.request({
+      method: 'GET',
+      url: config.api.syncCheck + `?sid=${this.session.wxsid}&skey=${this.session.skey}&uin=${this.session.wxuin}&deviceid=${this.session.deviceId}&synckey=${this.getSyncKeyString()}&r=${utils.getTimestamp()}&_=${utils.getTimestamp()}`,
+    });
+
+    const s = body.match(/window.synccheck={retcode:"(.*)",selector:"(.*)"}/);
+    if (s) {
+
+      const [_, retcode, selector] = s;
+      this._debug('wxSyncCheck: retcode=%s, selector=%s', retcode, selector);
+
+      if (retcode == 1100) {
+        return this.emit('logout');
+      }
+
+      if (retcode != 0) {
+        return this.emit('error', new Error(`wxSyncCheck failed with code #${retcode}`));
+      }
+
+      if (selector == 2) {
+        await this.wxSync();
+      }
+
+      if (selector == 7) {
+        this.emit('change status');
+      }
+
+    }
+
+  }
+
+  async wxSync() {
+
+    this._debug('wxSync: request');
+    const {response, body} = await this.request({
+      method: 'POST',
+      url: config.api.sync + `?sid=${this.session.wxsid}&skey=${this.session.skey}&pass_ticket=${this.session.pass_ticket}`,
+      headers: {
+        'content-type': 'application/json; charset=UTF-8',
+      },
+      json: true,
+      body: {
+        BaseRequest: this.getBaseRequest(),
+        SyncKey: this.getSyncKey(),
+        rr: ~utils.getTimestamp(),
+      },
+    });
+
+    if (body.SyncKey) {
+      this.setSyncKey(body.SyncKey);
+    }
+
+    if (body.AddMsgList) {
+      for (const item of body.AddMsgList) {
+        item.Content = utils.tryParseXMLMessageContent(item.Content);
+        this.emit('message', item);
       }
     }
 
@@ -209,15 +293,37 @@ export default class WeixinAPI extends EventEmitter {
       } else if (code === 408) {
         this._debug('login: timeout');
       } else {
-        throw new Error(`login failed waith status code ${code}`);
+        this.emit('error', new Error(`login failed waith status code ${code}`));
       }
     }
 
+    await utils.sleep(200);
     this._debug('login: wxNewLoginPage');
     await this.wxNewLoginPage(status.url + '&fun=' + config.fun);
 
+    await utils.sleep(200);
     this._debug('login: wxInit');
     await this.wxInit();
+
+    this.loop();
+
+  }
+
+  async loop() {
+
+    this._debug('start loop');
+
+    this.once('logout', () => {
+      this.continueLoop = false;
+    });
+
+    this.continueLoop = true;
+    while (this.continueLoop) {
+
+      await utils.sleep(500);
+      await this.wxSyncCheck();
+
+    }
 
   }
 

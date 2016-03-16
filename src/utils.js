@@ -12,7 +12,7 @@ import xml2json from 'xml2json';
 import _createDebug from 'debug';
 const debug = _createDebug('wxapi:utils');
 
-request.debug = _createDebug('wxapi:request');
+//request.debug = _createDebug('wxapi:request');
 
 export function createDebug(name) {
   return _createDebug('wxapi:' + name);
@@ -86,8 +86,11 @@ export function parseCookie(str) {
   const ret = {name: list[0].name, value: list[0].value};
   list = list.slice(1);
   for (const item of list) {
-    if (item.name.toLowerCase() === 'expires') {
+    const name = item.name.toLowerCase();
+    if (name === 'expires') {
       ret.expires = new Date(item.value);
+    } else {
+      ret[name] = item.value;
     }
   }
   return ret;
@@ -99,4 +102,22 @@ export function serializeCookies (obj) {
     list.push(`${i}=${encodeURIComponent(obj[i])}`);
   }
   return list.join('; ');
+}
+
+export function tryParseJSON(str) {
+  try {
+    const data = JSON.parse(str);
+    return data;
+  } catch (err) {
+    debug('tryParseJSON failed: err=%s, str=%s', err, str);
+    return str;
+  }
+}
+
+export function tryParseXMLMessageContent(content) {
+  if (typeof content === 'string' && /&lt;.*&gt;/.test(content)) {
+    return xmlToJSON(content.replace(/&lt;/g, '<').replace(/&gt;/g, '>'));
+  } else {
+    return content;
+  }
 }
