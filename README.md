@@ -1,4 +1,6 @@
 # weixin-api
+
+[![Greenkeeper badge](https://badges.greenkeeper.io/leizongmin/weixin-api.svg)](https://greenkeeper.io/)
 个人版微信API
 
 本项目受以下开源项目启发：
